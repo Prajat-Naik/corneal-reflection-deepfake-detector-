@@ -1,0 +1,399 @@
+{% extends "base.html" %}
+
+{% block title %}AuraEye Forensics - Auditing Terminal{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2 style="font-family: 'Outfit', sans-serif; font-weight: 700; color: white;">
+        <svg style="width:1.5rem;height:1.5rem;fill:currentColor" viewBox="0 0 24 24"><path d="M9 16h6v-6h4l-7-7-7 7h4v6zm-4 2h14v2H5v-2z"/></svg>
+        Auditing Terminal Input
+    </h2>
+    <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;">
+        Upload a high-resolution portrait facial image to perform specular geometry and micro-texture integrity analyses.
+    </p>
+
+    <!-- Upload Form -->
+    <form id="upload-form">
+        <div class="upload-area" id="drop-zone">
+            <div class="upload-icon">
+                <svg style="width:3.5rem;height:3.5rem;fill:currentColor" viewBox="0 0 24 24"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z"/></svg>
+            </div>
+            <p style="font-family: 'Outfit', sans-serif; font-size: 1.15rem; font-weight: 600; margin-bottom: 0.25rem;">Drag & drop image here</p>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">Supports local PNG, JPG, JPEG (min. 512x512 recommended)</p>
+            <input type="file" id="file-input" name="file" accept="image/*" required style="display: none;">
+            <button type="button" class="mini-btn" style="background: var(--primary-glow); color: var(--primary); border: 1px solid var(--primary); padding: 0.5rem 1.5rem; border-radius: 0.5rem; font-weight: 600; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='var(--primary)'; this.style.color='white'" onmouseout="this.style.background='var(--primary-glow)'; this.style.color='var(--primary)'" onclick="document.getElementById('file-input').click()">Browse local files</button>
+            <p id="filename-display" style="margin-top: 1.25rem; font-weight: 600; font-size: 0.95rem; color: var(--primary); display: none;"></p>
+        </div>
+
+        <button type="submit" class="btn-premium" id="submit-btn" style="margin-top: 1.5rem;" disabled>
+            <span class="btn-text">Run Forensics Diagnostics</span>
+            <div class="spinner" id="btn-spinner"></div>
+        </button>
+    </form>
+</div>
+
+<!-- Errors feedback -->
+<div class="card" id="error-card" style="margin-top: 2rem; display: none; border-color: var(--danger); background: rgba(239, 68, 68, 0.02);">
+    <h2 style="color: var(--danger); font-family: 'Outfit', sans-serif;"><svg style="width:1.5rem;height:1.5rem;fill:currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg> Audit Interrupted</h2>
+    <p id="error-message-text" style="font-size: 0.95rem; margin-top: 0.5rem; line-height: 1.5; color: #fca5a5;"></p>
+</div>
+
+<!-- Forensic Diagnostic Result section -->
+<div id="result-section" style="margin-top: 2rem; display: none; animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;">
+    <div class="card" style="padding: 2.25rem;">
+        
+        <!-- Header Info & Authenticity Gauge -->
+        <div style="display: flex; flex-direction: column; md-flex-direction: row; justify-content: space-between; align-items: center; gap: 2rem; margin-bottom: 2rem; border-bottom: 1px solid rgba(255,255,255,0.04); padding-bottom: 1.5rem;">
+            <div style="text-align: left; flex: 1; width: 100%;">
+                <div id="verdict-container"></div>
+                <h3 id="image-name-display" style="font-family: 'Outfit', sans-serif; font-size: 1.5rem; font-weight: 700; color: white; margin-bottom: 0.25rem; margin-top: 0.75rem;"></h3>
+                <p style="color: var(--text-muted); font-size: 0.85rem;">Specular-Biometric Neural Verification Boundary</p>
+                <div style="display: flex; gap: 0.75rem; margin-top: 1rem;">
+                    <a id="download-pdf-btn" href="#" class="sidebar-nav-item" style="padding: 0.45rem 1rem; font-size: 0.8rem; border-color: var(--primary); color: #c7d2fe; display: flex; align-items: center; gap: 0.4rem; background: none; text-decoration: none;" target="_blank">
+                        <svg style="width:1rem;height:1rem;fill:currentColor" viewBox="0 0 24 24"><path d="M19 12v7H5v-7H3v7c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2v-7h-2zm-6 .67l2.59-2.58L17 11.5l-5 5-5-5 1.41-1.41L11 12.67V3h2v9.67z"/></svg>
+                        Download PDF Certificate
+                    </a>
+                </div>
+            </div>
+
+            <!-- Authentic gauge -->
+            <div class="gauge-container">
+                <svg class="gauge-svg">
+                    <circle class="gauge-bg" cx="70" cy="70" r="55"></circle>
+                    <circle class="gauge-fill" id="verdict-gauge" cx="70" cy="70" r="55" stroke-dasharray="345.5" stroke-dashoffset="345.5"></circle>
+                </svg>
+                <div class="gauge-value">
+                    <span id="gauge-percent">0%</span>
+                    <span class="gauge-label">AUTHENTICITY</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Semantic Explanation statement -->
+        <div class="explanation-box" id="explanation-container"></div>
+
+        <!-- Four Biometric Metrics Progress Grid -->
+        <div class="metrics-grid">
+            <!-- SSIM score -->
+            <div class="metric-card">
+                <div class="metric-header">
+                    <span class="metric-title">Optical Highlight Similarity (SSIM)</span>
+                    <span class="metric-value" id="ssim-score">0.0000</span>
+                </div>
+                <p style="font-size: 0.75rem; color: var(--text-muted);">Symmetry and alignment of corneal specular highlights</p>
+                <div class="metric-progress">
+                    <div class="metric-bar" id="ssim-bar"></div>
+                </div>
+            </div>
+
+            <!-- IoU Overlap -->
+            <div class="metric-card">
+                <div class="metric-header">
+                    <span class="metric-title">Highlight Overlap (IoU Score)</span>
+                    <span class="metric-value" id="iou-score">0.0000</span>
+                </div>
+                <p style="font-size: 0.75rem; color: var(--text-muted);">Intersection over Union of reflection coordinates</p>
+                <div class="metric-progress">
+                    <div class="metric-bar" id="iou-bar"></div>
+                </div>
+            </div>
+
+            <!-- Texture score -->
+            <div class="metric-card">
+                <div class="metric-header">
+                    <span class="metric-title">Biometric Texture Score (LBP)</span>
+                    <span class="metric-value" id="texture-score">0.0000</span>
+                </div>
+                <p style="font-size: 0.75rem; color: var(--text-muted);">Biometric evaluation of skin pores and smoothness</p>
+                <div class="metric-progress">
+                    <div class="metric-bar" id="texture-bar"></div>
+                </div>
+            </div>
+
+            <!-- Laplacian variance -->
+            <div class="metric-card">
+                <div class="metric-header">
+                    <span class="metric-title">Skin Local Brightness Variance</span>
+                    <span class="metric-value" id="variance-score">0.0000</span>
+                </div>
+                <p style="font-size: 0.75rem; color: var(--text-muted);">Luminosity variance of skin surface micro-textures</p>
+                <div class="metric-progress">
+                    <div class="metric-bar" id="variance-bar"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Visual Diagnostics side-by-side -->
+        <div style="margin-top: 2rem;">
+            <h2 style="font-family: 'Outfit', sans-serif; font-size: 1.2rem; color: white; border-bottom: 1px solid rgba(255,255,255,0.04); padding-bottom: 0.5rem; margin-bottom: 1.25rem;">
+                Forensic Image Speciation
+            </h2>
+            <div style="display: grid; grid-template-columns: 1fr; md-grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+                
+                <!-- Bounding Box Face Landmarks visual -->
+                <div class="metric-card" style="padding: 1rem;">
+                    <p style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted); margin-bottom: 0.75rem;">Biometric Landmarks Mesh Alignment</p>
+                    <img id="mesh-visual-img" src="" alt="Landmarks alignment" style="width: 100%; border-radius: 0.5rem; border: 1px solid rgba(255,255,255,0.04); background: #000;">
+                </div>
+
+                <!-- Specular Highlights Visuals -->
+                <div class="metric-card" style="padding: 1rem;">
+                    <p style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted); margin-bottom: 0.75rem;">Extracted Corneal Highlights Speciation</p>
+                    <img id="final-visual-img" src="" alt="Highlights final comb" style="width: 100%; border-radius: 0.5rem; border: 1px solid rgba(255,255,255,0.04); background: #000;">
+                </div>
+            </div>
+        </div>
+
+        <!-- Stunning Interactive Specular Highlights Shifting Alignments -->
+        <div style="margin-top: 2.5rem; padding-top: 1.5rem; border-top: 1px solid rgba(255,255,255,0.04);">
+            <h2 style="font-family: 'Outfit', sans-serif; font-size: 1.25rem; color: var(--accent); margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+                <svg style="width:1.25rem;height:1.25rem;fill:currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95.49-7 3.85-7 7.93 0 4.08 3.05 7.44 7 7.93V4.07zm2 0v15.86c3.95-.49 7-3.85 7-7.93 0-4.08-3.05-7.44-7-7.93z"/></svg>
+                Interactive Specular Shift Calibration Tool
+            </h2>
+            <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1.25rem;">
+                AuraEye aligned irises to find the global highlight overlap. Use the sliders below to manually translate the left iris reflection mask (glowing green) over the right iris reflection mask (glowing red) to visual-validate the geometric mismatch yourself!
+            </p>
+
+            <div class="interactive-overlay-panel">
+                <!-- Overlaid Visual Display -->
+                <div class="canvas-container">
+                    <!-- Layer 1: Left highlight mask shifted. Filter screen makes overlapping pixels white/yellow! -->
+                    <img id="layer-left" class="canvas-layer" src="" alt="Left Layer" style="filter: drop-shadow(0 0 6px rgba(16, 185, 129, 0.85));">
+                    <!-- Layer 2: Right highlight mask static -->
+                    <img id="layer-right" class="canvas-layer" src="" alt="Right Layer" style="filter: drop-shadow(0 0 6px rgba(239, 68, 68, 0.85));">
+                </div>
+
+                <!-- Sliders Controls -->
+                <div style="display: flex; flex-direction: column; justify-content: center; gap: 1.5rem;">
+                    <div class="slider-group">
+                        <div style="display: flex; justify-content: space-between; font-size: 0.85rem; color: var(--text-muted); font-weight: 500;">
+                            <span>Left Iris Horizontal Shift (X-Axis)</span>
+                            <span id="slider-x-val" style="color: var(--accent); font-weight: 700;">0 px</span>
+                        </div>
+                        <input type="range" class="range-slider" id="shift-slider-x" min="-40" max="40" value="0">
+                    </div>
+
+                    <div class="slider-group">
+                        <div style="display: flex; justify-content: space-between; font-size: 0.85rem; color: var(--text-muted); font-weight: 500;">
+                            <span>Left Iris Vertical Shift (Y-Axis)</span>
+                            <span id="slider-y-val" style="color: var(--accent); font-weight: 700;">0 px</span>
+                        </div>
+                        <input type="range" class="range-slider" id="shift-slider-y" min="-40" max="40" value="0">
+                    </div>
+
+                    <div class="explanation-box" style="margin-bottom: 0; background: rgba(6, 182, 212, 0.03); border-color: rgba(6, 182, 212, 0.15);">
+                        <p style="font-size: 0.8rem; line-height: 1.4; color: var(--text-muted);">
+                            <strong>How to verify:</strong> Adjust X/Y sliders until the bright specular highlights align. If the green and red highlights match seamlessly, it indicates a high overlap (IOU) expected in authentic human photography. If highlights have different sizes, shapes, or require massive, impossible shifts to overlap, the image is highly flagged as synthetic/manipulated.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const dropZone = document.getElementById("drop-zone");
+        const fileInput = document.getElementById("file-input");
+        const filenameDisplay = document.getElementById("filename-display");
+        const uploadForm = document.getElementById("upload-form");
+        const submitBtn = document.getElementById("submit-btn");
+        const btnText = submitBtn.querySelector(".btn-text");
+        const spinner = submitBtn.querySelector(".spinner");
+
+        const resultSection = document.getElementById("result-section");
+        const errorCard = document.getElementById("error-card");
+        const errorText = document.getElementById("error-message-text");
+
+        // Interactive align slider elements
+        const sliderX = document.getElementById("shift-slider-x");
+        const sliderY = document.getElementById("shift-slider-y");
+        const sliderValX = document.getElementById("slider-x-val");
+        const sliderValY = document.getElementById("slider-y-val");
+        const layerLeft = document.getElementById("layer-left");
+
+        // Drag & Drop visual indicators
+        ["dragenter", "dragover"].forEach(eventName => {
+            dropZone.addEventListener(eventName, (e) => {
+                e.preventDefault();
+                dropZone.style.borderColor = "var(--primary)";
+                dropZone.style.background = "rgba(99, 102, 241, 0.02)";
+            }, false);
+        });
+
+        ["dragleave", "drop"].forEach(eventName => {
+            dropZone.addEventListener(eventName, (e) => {
+                e.preventDefault();
+                dropZone.style.borderColor = "rgba(255, 255, 255, 0.15)";
+                dropZone.style.background = "rgba(255, 255, 255, 0.01)";
+            }, false);
+        });
+
+        dropZone.addEventListener("drop", (e) => {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            if (files.length > 0) {
+                fileInput.files = files;
+                handleFileSelect();
+            }
+        });
+
+        fileInput.addEventListener("change", handleFileSelect);
+
+        function handleFileSelect() {
+            if (fileInput.files.length > 0) {
+                const file = fileInput.files[0];
+                filenameDisplay.textContent = `Queued: ${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
+                filenameDisplay.style.display = "block";
+                submitBtn.disabled = false;
+            } else {
+                filenameDisplay.style.display = "none";
+                submitBtn.disabled = true;
+            }
+        }
+
+        // Handle diagnostic run submit
+        uploadForm.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            if (fileInput.files.length === 0) return;
+
+            // Trigger loading state
+            submitBtn.disabled = true;
+            btnText.style.display = "none";
+            spinner.style.display = "block";
+            resultSection.style.display = "none";
+            errorCard.style.display = "none";
+
+            const formData = new FormData();
+            formData.append("file", fileInput.files[0]);
+
+            try {
+                const response = await fetch("/api/analyze", {
+                    method: "POST",
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || "Handshake/analysis failed.");
+                }
+
+                // Render metrics success
+                populateForensicsDashboard(data, fileInput.files[0].name);
+
+            } catch (err) {
+                errorCard.style.display = "block";
+                errorText.innerHTML = err.message;
+            } finally {
+                submitBtn.disabled = false;
+                btnText.style.display = "block";
+                spinner.style.display = "none";
+            }
+        });
+
+        function populateForensicsDashboard(data, file_name) {
+            // Verdict Badge
+            const verdictContainer = document.getElementById("verdict-container");
+            const verdictClass = data.verdict.toLowerCase();
+            
+            verdictContainer.innerHTML = `<span class="verdict-badge ${verdictClass}">${data.verdict}</span>`;
+            
+            // Info text
+            document.getElementById("image-name-display").textContent = file_name;
+            document.getElementById("explanation-container").innerHTML = data.explanation;
+
+            // Authentic Gauge animation
+            const authenticityPercent = data.final_score * 100;
+            animateGauge(authenticityPercent, data.verdict);
+
+            // Populate specific metrics
+            populateProgressMetric("ssim-score", "ssim-bar", data.ssim_score, 1.0, data.verdict);
+            populateProgressMetric("iou-score", "iou-bar", data.iou_score, 1.0, data.verdict);
+            populateProgressMetric("texture-score", "texture-bar", data.texture_score, 1.0, data.verdict);
+            
+            // Variance raw representation
+            document.getElementById("variance-score").textContent = data.variance.toFixed(2);
+            const varBar = document.getElementById("variance-bar");
+            // Standardize variance relative to 600 max
+            const varPercent = Math.min(100, (data.variance / 600) * 100);
+            varBar.style.width = `${varPercent}%`;
+            varBar.style.background = data.verdict === "REAL" ? "var(--success)" : "var(--danger)";
+
+            // Images inserts
+            document.getElementById("mesh-visual-img").src = data.mesh_url;
+            document.getElementById("final-visual-img").src = data.result_image_url;
+
+            // PDF reports download link
+            const downloadBtn = document.getElementById("download-pdf-btn");
+            downloadBtn.href = data.report_url;
+
+            // Interactive shift layers loading
+            layerLeft.src = data.l_mask_url;
+            document.getElementById("layer-right").src = data.r_mask_url;
+            
+            // Reset shifts sliders
+            sliderX.value = 0;
+            sliderY.value = 0;
+            sliderValX.textContent = "0 px";
+            sliderValY.textContent = "0 px";
+            layerLeft.style.transform = "translate(0px, 0px)";
+
+            resultSection.style.display = "block";
+            // Scroll down to results smoothly
+            resultSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        function populateProgressMetric(valId, barId, value, maxVal, verdict) {
+            document.getElementById(valId).textContent = value.toFixed(4);
+            const percent = (value / maxVal) * 100;
+            const bar = document.getElementById(barId);
+            bar.style.width = `${Math.max(0, percent)}%`;
+            bar.style.background = verdict === "REAL" ? "var(--success)" : "var(--danger)";
+        }
+
+        function animateGauge(percent, verdict) {
+            const gauge = document.getElementById("verdict-gauge");
+            const gaugePercent = document.getElementById("gauge-percent");
+            
+            // Total circumference of circle CX 70 CY 70 R 55 is ~345.57
+            const circumference = 345.57;
+            const offset = circumference - (percent / 100) * circumference;
+            
+            gauge.style.strokeDashoffset = offset;
+            gauge.style.stroke = verdict === "REAL" ? "var(--success)" : "var(--danger)";
+            
+            // Animate percentage text count-up
+            let current = 0;
+            const interval = setInterval(() => {
+                if (current >= percent) {
+                    clearInterval(interval);
+                    gaugePercent.textContent = `${percent.toFixed(0)}%`;
+                } else {
+                    current += Math.ceil(percent / 15);
+                    if (current > percent) current = percent;
+                    gaugePercent.textContent = `${current.toFixed(0)}%`;
+                }
+            }, 30);
+        }
+
+        // Sliders translates listeners
+        function updateLayersTransform() {
+            const x = sliderX.value;
+            const y = sliderY.value;
+            sliderValX.textContent = `${x} px`;
+            sliderValY.textContent = `${y} px`;
+            // Apply visual shifting to left highlight mask
+            layerLeft.style.transform = `translate(${x}px, ${y}px)`;
+        }
+
+        sliderX.addEventListener("input", updateLayersTransform);
+        sliderY.addEventListener("input", updateLayersTransform);
+    });
+</script>
+{% endblock %}

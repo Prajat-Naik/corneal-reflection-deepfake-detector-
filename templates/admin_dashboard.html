@@ -1,0 +1,358 @@
+{% extends "base.html" %}
+
+{% block title %}AuraEye Forensics - System Console Center{% endblock %}
+
+{% block content %}
+<div style="display: flex; flex-direction: column; gap: 2rem;">
+    
+    <!-- System Analytics Summary -->
+    <div style="display: grid; grid-template-columns: 1fr; sm-grid-template-columns: 1fr 1fr 1fr; gap: 1.5rem;">
+        
+        <!-- Total Analyses Runs -->
+        <div class="card" style="padding: 1.5rem; border-color: rgba(255,255,255,0.04); display: flex; align-items: center; justify-content: space-between; gap: 1rem;">
+            <div>
+                <p style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700; letter-spacing: 0.05em; margin-bottom: 0.25rem;">Total Audits Processed</p>
+                <h3 id="stat-total-runs" style="font-family: 'Outfit', sans-serif; font-size: 2.25rem; font-weight: 800; color: white;">0</h3>
+            </div>
+            <div style="color: var(--primary); background: var(--primary-glow); padding: 0.75rem; border-radius: 0.75rem;">
+                <svg style="width:2.25rem;height:2.25rem;fill:currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H7c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.04-.42 1.99-1.07 2.75z"/></svg>
+            </div>
+        </div>
+
+        <!-- Deepfakes Intercepted -->
+        <div class="card" style="padding: 1.5rem; border-color: rgba(239, 68, 68, 0.15); display: flex; align-items: center; justify-content: space-between; gap: 1rem; background: rgba(239, 68, 68, 0.01);">
+            <div>
+                <p style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700; letter-spacing: 0.05em; margin-bottom: 0.25rem;">Deepfakes Intercepted</p>
+                <h3 id="stat-total-fakes" style="font-family: 'Outfit', sans-serif; font-size: 2.25rem; font-weight: 800; color: var(--danger);">0</h3>
+            </div>
+            <div style="color: var(--danger); background: var(--danger-glow); padding: 0.75rem; border-radius: 0.75rem;">
+                <svg style="width:2.25rem;height:2.25rem;fill:currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+            </div>
+        </div>
+
+        <!-- Auditor Terminals -->
+        <div class="card" style="padding: 1.5rem; border-color: rgba(6, 182, 212, 0.15); display: flex; align-items: center; justify-content: space-between; gap: 1rem; background: rgba(6, 182, 212, 0.01);">
+            <div>
+                <p style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700; letter-spacing: 0.05em; margin-bottom: 0.25rem;">Auditor Nodes Seeding</p>
+                <h3 id="stat-total-users" style="font-family: 'Outfit', sans-serif; font-size: 2.25rem; font-weight: 800; color: var(--accent);">0</h3>
+            </div>
+            <div style="color: var(--accent); background: rgba(6, 182, 212, 0.15); padding: 0.75rem; border-radius: 0.75rem;">
+                <svg style="width:2.25rem;height:2.25rem;fill:currentColor" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Threshold System Configuration -->
+    <div class="card" style="padding: 2.25rem; border-color: rgba(6, 182, 212, 0.25); background: rgba(6, 182, 212, 0.02);">
+        <h2 style="font-family: 'Outfit', sans-serif; font-weight: 700; color: var(--accent); margin-bottom: 0.5rem;">
+            <svg style="width:1.5rem;height:1.5rem;fill:currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H7c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.04-.42 1.99-1.07 2.75z"/></svg>
+            System Forensic Boundary Calibration
+        </h2>
+        <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem; line-height: 1.4;">
+            Calibration values specify the classification decision boundary. Images with authenticity confidence scores <strong>below</strong> the threshold are flagged as <strong>FAKE</strong>. Images with confidence scores <strong>at or above</strong> the threshold are cleared as <strong>REAL</strong>.
+        </p>
+
+        <div style="background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.04); border-radius: 1rem; padding: 1.5rem; display: flex; flex-direction: column; sm-flex-direction: row; align-items: center; gap: 2rem;">
+            <div style="flex: 1; width: 100%;">
+                <div style="display: flex; justify-content: space-between; font-size: 0.85rem; color: var(--text-muted); font-weight: 600; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.05em;">
+                    <span>System Decision Boundary</span>
+                    <span id="threshold-val-display" style="color: var(--accent); font-family: 'Outfit', sans-serif; font-size: 1.1rem; font-weight: 800;">0.50</span>
+                </div>
+                <input type="range" class="range-slider" id="threshold-slider" min="10" max="90" value="50">
+                <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.6rem; line-height: 1.3;">
+                    Dragging this range slider propagates a global decision calibration boundary update across all auditing nodes in the backend instantly.
+                </p>
+            </div>
+            
+            <button type="button" class="mini-btn" id="save-threshold-btn" style="padding: 0.8rem 1.75rem; font-size: 0.9rem; border-color: var(--accent); color: #22d3ee; min-width: 150px; background: none; border-width: 2px;" onmouseover="this.style.background='var(--accent)'; this.style.color='white'" onmouseout="this.style.background='none'; this.style.color='#22d3ee'">
+                Calibrate Node
+            </button>
+    </div>
+
+    <!-- Pending Access Requests -->
+    {% if pending_users %}
+    <div class="card" id="pending-requests-section" style="padding: 2.25rem; border-color: rgba(245, 158, 11, 0.25); background: rgba(245, 158, 11, 0.02); margin-bottom: 2rem;">
+        <h2 style="font-family: 'Outfit', sans-serif; font-weight: 700; color: #f59e0b; display: flex; align-items: center; gap: 0.5rem;">
+            <svg style="width:1.5rem;height:1.5rem;fill:currentColor;" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+            Pending Auditor Access Requests
+        </h2>
+        <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;">
+            Seeding request cues from new terminal nodes. Approve to activate their terminal access, or Reject to purge their request.
+        </p>
+        <div style="width: 100%; overflow-x: auto; border-radius: 0.75rem; border: 1px solid rgba(245,158,11,0.1);">
+            <table class="custom-table">
+                <thead>
+                    <tr>
+                        <th>Request ID</th>
+                        <th>Proposed Username</th>
+                        <th>Terminal Clearance</th>
+                        <th>Request Date</th>
+                        <th style="text-align: center;">Console Verification Action</th>
+                    </tr>
+                </thead>
+                <tbody id="pending-users-tbody">
+                    {% for u in pending_users %}
+                    <tr id="pending-row-{{ u.id }}" style="transition: opacity 0.5s ease, transform 0.5s ease;">
+                        <td style="font-weight:600;color:#f59e0b;">AE-REQ-{{ "%03d" | format(u.id) }}</td>
+                        <td style="font-weight:700;color:white;">{{ u.username | upper }}</td>
+                        <td>
+                            <span style="font-size: 0.65rem; font-weight: 800; padding: 0.15rem 0.5rem; border-radius: 4px; text-transform: uppercase; background: rgba(245, 158, 11, 0.15); color: #f59e0b;">
+                                {{ u.role }}
+                            </span>
+                        </td>
+                        <td style="font-size:0.85rem;color:var(--text-muted);">{{ u.created_at }}</td>
+                        <td style="text-align: center; display: flex; justify-content: center; gap: 0.75rem; align-items: center;">
+                            <button class="mini-btn accept-btn" data-id="{{ u.id }}" style="padding: 0.35rem 0.9rem; border-color: var(--success); color: #a7f3d0; background: none; border-width: 1px; font-weight: 600;" onmouseover="this.style.background='var(--success)'; this.style.color='white'" onmouseout="this.style.background='none'; this.style.color='#a7f3d0'">
+                                Accept Auditor
+                            </button>
+                            <button class="mini-btn reject-btn" data-id="{{ u.id }}" style="padding: 0.35rem 0.9rem; border-color: var(--danger); color: #fca5a5; background: none; border-width: 1px; font-weight: 600;" onmouseover="this.style.background='var(--danger)'; this.style.color='white'" onmouseout="this.style.background='none'; this.style.color='#fca5a5'">
+                                Reject Request
+                            </button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Active Terminal Auditor Nodes List -->
+    <div class="card" style="padding: 2.25rem;">
+        <h2 style="font-family: 'Outfit', sans-serif; font-weight: 700; color: white;">
+            <svg style="width:1.5rem;height:1.5rem;fill:currentColor;color:var(--accent);" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+            Active Auditing Terminal Nodes
+        </h2>
+        <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;">
+            List of authorized auditor terminals deployed in the network.
+        </p>
+        <div style="width: 100%; overflow-x: auto; border-radius: 0.75rem; border: 1px solid rgba(255,255,255,0.04);">
+            <table class="custom-table">
+                <thead>
+                    <tr>
+                        <th>Node ID</th>
+                        <th>Auditor Username</th>
+                        <th>Terminal Clearance</th>
+                        <th>Deployment Date</th>
+                        <th>Clearance Status</th>
+                        <th style="text-align: center;">Console Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="active-users-tbody">
+                    {% for u in active_users %}
+                    <tr id="active-row-{{ u.id }}" style="transition: opacity 0.5s ease, transform 0.5s ease;">
+                        <td style="font-weight:600;color:var(--accent);">AE-USR-N{{ "%03d" | format(u.id) }}</td>
+                        <td style="font-weight:700;color:white;">{{ u.username | upper }}</td>
+                        <td>
+                            <span style="font-size: 0.65rem; font-weight: 800; padding: 0.15rem 0.5rem; border-radius: 4px; text-transform: uppercase; background: {% if u.role == 'admin' %}rgba(6, 182, 212, 0.15){% else %}rgba(99, 102, 241, 0.15){% endif %}; color: {% if u.role == 'admin' %}var(--accent){% else %}var(--primary){% endif %};">
+                                {{ u.role }}
+                            </span>
+                        </td>
+                        <td style="font-size:0.85rem;color:var(--text-muted);">{{ u.created_at }}</td>
+                        <td>
+                            <span style="font-size: 0.65rem; font-weight: 800; padding: 0.15rem 0.5rem; border-radius: 4px; text-transform: uppercase; background: rgba(16, 185, 129, 0.15); color: var(--success);">
+                                {% if u.role == 'admin' %}Authorized{% else %}Active / Approved{% endif %}
+                            </span>
+                        </td>
+                        <td style="text-align: center;">
+                            {% if u.role == 'admin' %}
+                            <span style="color:var(--text-muted);font-size:0.8rem;font-style:italic;">Master Console</span>
+                            {% else %}
+                            <button class="mini-btn deactivate-btn" data-id="{{ u.id }}" style="padding: 0.35rem 0.75rem; border-color: var(--danger); color: #fca5a5; background: none; border-width: 1px;" onmouseover="this.style.background='var(--danger)'; this.style.color='white'" onmouseout="this.style.background='none'; this.style.color='#fca5a5'">
+                                Deactivate Node
+                            </button>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const statTotalRuns = document.getElementById("stat-total-runs");
+        const statTotalFakes = document.getElementById("stat-total-fakes");
+        const statTotalUsers = document.getElementById("stat-total-users");
+
+        const slider = document.getElementById("threshold-slider");
+        const sliderValDisplay = document.getElementById("threshold-val-display");
+        const saveBtn = document.getElementById("save-threshold-btn");
+
+        // Fetch System Stats on load
+        fetchSystemStats();
+
+        async function fetchSystemStats() {
+            try {
+                const response = await fetch("/api/admin/stats");
+                if (!response.ok) throw new Error("Clearance refused.");
+                const data = await response.json();
+
+                statTotalRuns.textContent = data.total_runs;
+                statTotalFakes.textContent = data.total_fakes;
+                statTotalUsers.textContent = data.total_users;
+
+                // Sync slider with current state
+                const thVal = data.current_threshold;
+                slider.value = Math.round(thVal * 100);
+                sliderValDisplay.textContent = thVal.toFixed(2);
+
+            } catch (err) {
+                console.error("Stats handshake failed: ", err);
+            }
+        }
+
+        // Handle slider visual drag
+        slider.addEventListener("input", function() {
+            const val = parseFloat(slider.value) / 100;
+            sliderValDisplay.textContent = val.toFixed(2);
+        });
+
+        // Submit Threshold Calibration
+        saveBtn.addEventListener("click", async function() {
+            const targetThreshold = parseFloat(slider.value) / 100;
+            saveBtn.disabled = true;
+            saveBtn.textContent = "Calibrating...";
+
+            try {
+                const response = await fetch("/api/admin/threshold", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ threshold: targetThreshold })
+                });
+
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.error || "Calibrate rejected.");
+
+                alert(`Success! Global forensic decision boundary recalibrated to: ${data.new_threshold.toFixed(2)}`);
+                sliderValDisplay.textContent = data.new_threshold.toFixed(2);
+                slider.value = Math.round(data.new_threshold * 100);
+
+            } catch (err) {
+                alert(`Calibration failure: ${err.message}`);
+            } finally {
+                saveBtn.disabled = false;
+                saveBtn.textContent = "Calibrate Node";
+            }
+        });
+
+        // Bind event listeners for explicit User Accept request
+        document.querySelectorAll(".accept-btn").forEach(btn => {
+            btn.addEventListener("click", async function(e) {
+                const userId = e.target.getAttribute("data-id");
+                const row = document.getElementById(`pending-row-${userId}`);
+                
+                btn.disabled = true;
+                btn.textContent = "Accepting...";
+
+                try {
+                    const response = await fetch(`/api/admin/accept-user/${userId}`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" }
+                    });
+
+                    const data = await response.json();
+                    if (!response.ok) throw new Error(data.error || "Accept request failed.");
+
+                    // Fade out request row
+                    row.style.opacity = "0";
+                    row.style.transform = "translateX(20px)";
+                    setTimeout(() => {
+                        row.remove();
+                        // Reload to sync tables cleanly
+                        window.location.reload();
+                    }, 500);
+
+                } catch (err) {
+                    alert(`Access Approval error: ${err.message}`);
+                    btn.disabled = false;
+                    btn.textContent = "Accept Auditor";
+                }
+            });
+        });
+
+        // Bind event listeners for explicit User Reject request
+        document.querySelectorAll(".reject-btn").forEach(btn => {
+            btn.addEventListener("click", async function(e) {
+                if (!confirm("Are you sure you want to reject and permanently delete this auditor node registration request?")) return;
+                
+                const userId = e.target.getAttribute("data-id");
+                const row = document.getElementById(`pending-row-${userId}`);
+                
+                btn.disabled = true;
+                btn.textContent = "Rejecting...";
+
+                try {
+                    const response = await fetch(`/api/admin/reject-user/${userId}`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" }
+                    });
+
+                    const data = await response.json();
+                    if (!response.ok) throw new Error(data.error || "Reject request failed.");
+
+                    // Fade out request row
+                    row.style.opacity = "0";
+                    row.style.transform = "translateX(-20px)";
+                    setTimeout(() => {
+                        row.remove();
+                        // If no more rows are left, hide the section or reload
+                        const pendingBody = document.getElementById("pending-users-tbody");
+                        if (!pendingBody || pendingBody.children.length === 0) {
+                            const section = document.getElementById("pending-requests-section");
+                            if (section) section.remove();
+                        }
+                    }, 500);
+
+                } catch (err) {
+                    alert(`Request Rejection error: ${err.message}`);
+                    btn.disabled = false;
+                    btn.textContent = "Reject Request";
+                }
+            });
+        });
+
+        // Bind event listeners for explicit User Deactivate
+        document.querySelectorAll(".deactivate-btn").forEach(btn => {
+            btn.addEventListener("click", async function(e) {
+                if (!confirm("Are you sure you want to deactivate this auditor node? They will be blocked from logging into the network until re-accepted.")) return;
+                
+                const userId = e.target.getAttribute("data-id");
+                const row = document.getElementById(`active-row-${userId}`);
+                
+                btn.disabled = true;
+                btn.textContent = "Deactivating...";
+
+                try {
+                    const response = await fetch(`/api/admin/deactivate-user/${userId}`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" }
+                    });
+
+                    const data = await response.json();
+                    if (!response.ok) throw new Error(data.error || "Deactivation failed.");
+
+                    // Fade out active row
+                    row.style.opacity = "0";
+                    row.style.transform = "translateY(20px)";
+                    setTimeout(() => {
+                        row.remove();
+                        window.location.reload();
+                    }, 500);
+
+                } catch (err) {
+                    alert(`Auditor deactivation error: ${err.message}`);
+                    btn.disabled = false;
+                    btn.textContent = "Deactivate Node";
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

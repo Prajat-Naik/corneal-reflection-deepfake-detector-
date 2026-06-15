@@ -1,0 +1,80 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+backend/__pycache__/
+backend/database/__pycache__/
+
+# Environments
+.env
+.venv
+.venv-1
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# IDE files
+.idea/
+.vscode/
+*.swp
+*.swo
+*.iml
+
+# Datasets and splits (keep directory structure but ignore images)
+dataset/real/*
+!dataset/real/.gitkeep
+dataset/fake/*
+!dataset/fake/.gitkeep
+dataset/debug/*
+!dataset/debug/.gitkeep
+dataset_split/train/*
+!dataset_split/train/.gitkeep
+dataset_split/val/*
+!dataset_split/val/.gitkeep
+dataset_split/test/*
+!dataset_split/test/.gitkeep
+
+# Models and predictor weights
+shape_predictor/*
+!shape_predictor/.gitkeep
+model_backups/*
+!model_backups/.gitkeep
+*.pth
+*.pkl
+*.h5
+*.joblib
+
+# Outputs
+outputs/efficientnet/*
+!outputs/efficientnet/.gitkeep
+outputs/fake_test/*
+!outputs/fake_test/.gitkeep
+outputs/fusion/*
+!outputs/fusion/.gitkeep
+outputs/fusion_v3/*
+!outputs/fusion_v3/.gitkeep
+
+# Generated web assets and uploads (root frontend/backend)
+static/uploads/*
+!static/uploads/.gitkeep
+static/results/*
+!static/results/.gitkeep
+static/reports/*
+!static/reports/.gitkeep
+
+backend/uploads/*
+!backend/uploads/.gitkeep
+backend/reports/*
+!backend/reports/.gitkeep
+backend/static/results/*
+!backend/static/results/.gitkeep
+
+# Office and Temporary files
+~$*
+*.docx.bak
+*.tmp
+*.log
+forensics.db
+backend/forensics.db

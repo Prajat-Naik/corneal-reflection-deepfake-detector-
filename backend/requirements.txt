@@ -1,0 +1,16 @@
+scikit-image
+scipy
+matplotlib
+numpy
+Pillow
+opencv-python
+Flask
+flask-cors
+mediapipe
+scikit-learn
+joblib
+pandas
+fpdf2
+PyJWT
+mysql-connector-python
+werkzeug

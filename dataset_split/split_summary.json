@@ -1,0 +1,17 @@
+{
+    "total": 1000,
+    "classes": {
+        "real": {
+            "total": 500,
+            "train": 350,
+            "val": 75,
+            "test": 75
+        },
+        "fake": {
+            "total": 500,
+            "train": 350,
+            "val": 75,
+            "test": 75
+        }
+    }
+}
