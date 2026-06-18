@@ -26,48 +26,17 @@ class DeepfakePredictor:
         os.makedirs(self.output_dir, exist_ok=True)
 
         # ML Model Integration (V3)
-        self.use_ml = False
-        self.device = None
+        self.texture_model = None
         model_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-        cnn_path = os.path.join(model_dir, 'outputs', 'efficientnet', 'best_model.pth')
-        fusion_path = os.path.join(model_dir, 'outputs', 'fusion_v3', 'fusion_model.pkl')
+        texture_model_path = os.path.join(model_dir, 'texture_model.pkl')
         
-        if os.path.exists(cnn_path) and os.path.exists(fusion_path):
+        if os.path.exists(texture_model_path):
             try:
-                import torch
-                import torch.nn as nn
-                from torchvision import models, transforms
                 import joblib
-                
-                self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-                
-                # Reconstruct and load EfficientNet-B0
-                self.cnn_model = models.efficientnet_b0(pretrained=False)
-                num_ftrs = self.cnn_model.classifier[1].in_features
-                self.cnn_model.classifier[1] = nn.Linear(num_ftrs, 1)
-                
-                checkpoint = torch.load(cnn_path, map_location=self.device)
-                if isinstance(checkpoint, dict):
-                    self.cnn_model.load_state_dict(checkpoint)
-                else:
-                    self.cnn_model = checkpoint
-                self.cnn_model = self.cnn_model.to(self.device)
-                self.cnn_model.eval()
-                
-                # Load Fusion Meta-Classifier
-                self.fusion_clf = joblib.load(fusion_path)
-                
-                # Input transform for CNN
-                self.transform = transforms.Compose([
-                    transforms.Resize((224, 224)),
-                    transforms.ToTensor(),
-                    transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
-                ])
-                
-                self.use_ml = True
-                print("[DeepfakePredictor] Successfully loaded V3 Fusion Model & CNN weights!")
+                self.texture_model = joblib.load(texture_model_path)
+                print("[DeepfakePredictor] Successfully loaded face texture SVM model!")
             except Exception as e:
-                print(f"[DeepfakePredictor] Warning: Failed to initialize V3 ML models: {e}")
+                print(f"[DeepfakePredictor] Warning: Failed to load texture SVM: {e}")
 
     def analyze_image(self, image_path):
         """
@@ -119,88 +88,45 @@ class DeepfakePredictor:
         )
         ssim = self.metrics_calculator.calculate_ssim(l_img, r_img, l_primary, r_primary)
 
-        # 5. Trust Score & Verdict Formulation
-        use_ml_success = False
-        cnn_fake_prob = 0.5
-        reflection_fake_prob = 0.5
+        # 5. Face Texture Score Calculation
+        from crop_highlights import analyze_face_texture
+        texture_score, texture_variance = analyze_face_texture(face_crop, model=self.texture_model)
 
-        if self.use_ml:
+        # 6. Combined Prediction Score (Weighted Fusion)
+        # Load optimized weights dynamically
+        model_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+        weights_path = os.path.join(model_dir, 'outputs', 'fusion_v3', 'fusion_weights.json')
+        w_tex, w_crcs = 0.6, 0.4
+        if os.path.exists(weights_path):
             try:
-                from PIL import Image
-                import torch
-                
-                # A. CNN prediction (probability of FAKE)
-                img_pil = Image.open(image_path).convert('RGB')
-                img_t = self.transform(img_pil).unsqueeze(0).to(self.device)
-                with torch.no_grad():
-                    logits = self.cnn_model(img_t)
-                    cnn_fake_prob = torch.sigmoid(logits).item()
-                
-                # B. Reflection Consistency prediction (0.0=Fake, 1.0=Real)
-                from corneal_reflection import CornealReflectionAnalyzer
-                analyzer = CornealReflectionAnalyzer()
-                reflection_consistency = analyzer.calculate_consistency_score(image_path)
-                reflection_fake_prob = 1.0 - reflection_consistency
-                
-                # C. Fusion Classifier prediction
-                features = np.array([[cnn_fake_prob, reflection_fake_prob]])
-                fusion_fake_prob = self.fusion_clf.predict_proba(features)[0][1]
-                
-                # Trust Score represents probability of being REAL (0 - 100)
-                trust_score = int((1.0 - fusion_fake_prob) * 100)
-                risk_level = self.metrics_calculator.interpret_trust_score(trust_score)
-                result = "REAL" if trust_score >= 50 else "DEEPFAKE"
-                confidence = float(100.0 - trust_score) if result == "DEEPFAKE" else float(trust_score)
-                
-                use_ml_success = True
-            except Exception as e:
-                print(f"[DeepfakePredictor] Error during ML prediction: {e}. Falling back to heuristic.")
+                import json
+                with open(weights_path, 'r') as f:
+                    w_data = json.load(f)
+                    w_tex = w_data.get('w_tex', 0.6)
+                    w_crcs = w_data.get('w_crcs', 0.4)
+            except Exception:
+                pass
 
-        if not use_ml_success:
-            # Trust Score Formula (Heuristic Fallback)
-            trust_score = int((rsi * 0.3 + (crcs / 100.0) * 0.4 + ssim * 0.3) * 100)
-            risk_level = self.metrics_calculator.interpret_trust_score(trust_score)
-            result = "REAL" if trust_score >= 65 else "DEEPFAKE"
-            if result == "REAL":
-                confidence = max(65.0, min(99.0, float(trust_score)))
-            else:
-                confidence = max(65.0, min(99.0, 100.0 - float(trust_score)))
+        final_score = w_tex * texture_score + w_crcs * (crcs / 100.0)
+        trust_score = int(final_score * 100)
+        risk_level = self.metrics_calculator.interpret_trust_score(trust_score)
+        
+        result = "REAL" if trust_score >= 50 else "DEEPFAKE"
+        confidence = float(trust_score) if result == "REAL" else float(100.0 - trust_score)
 
-        # 6. Explainable AI Reasoning Reasons Checklist
+        # 7. Explainable AI Reasoning Checklist
         reasons = []
-        if use_ml_success:
-            # Highlight CNN skin texture finding
-            if cnn_fake_prob > 0.5:
-                reasons.append(f"Skin texture artifacts detected (CNN score: {cnn_fake_prob:.2f})")
-            # Highlight corneal reflection consistency finding
-            if reflection_fake_prob > 0.5:
-                reasons.append(f"Inconsistent ocular reflection alignment (reflection score: {reflection_fake_prob:.2f})")
+        if texture_score < 0.5:
+            reasons.append(f"Irregular facial micro-texture detected (authenticity score: {texture_score:.2f})")
+        if (crcs / 100.0) < 0.5:
+            reasons.append(f"Inconsistent ocular corneal reflection alignment (CRCS score: {crcs:.1f} / 100)")
             
-            # If the final verdict is DEEPFAKE but individual scores didn't exceed 0.5 alone
-            if result == "DEEPFAKE" and not reasons:
-                reasons.append("Combined biometric and texture analysis flagged anomalies")
-        else:
-            # Position Mismatch Check: Mismatch distance > 0.08 is suspicious
-            pos_mismatch = rsi_breakdown["distance_mismatch"] > 0.08
-            if pos_mismatch:
-                reasons.append("Reflection Position Mismatch detected")
-            
-            # Brightness Difference Check
-            bright_diff = abs((l_primary["brightness"] if l_primary else 0) - (r_primary["brightness"] if r_primary else 0)) > 25
-            if bright_diff:
-                reasons.append("Reflection Brightness Difference detected")
-    
-            # Low RSI Check
-            if rsi < 0.70:
-                reasons.append("Low Reflection Symmetry Index (RSI)")
-            
-            # Low SSIM Check
-            if ssim < 0.75:
-                reasons.append("Low Structural Similarity Score (SSIM)")
+        if result == "DEEPFAKE" and not reasons:
+            reasons.append("Combined biometric and texture analysis flagged anomalies")
 
-        explanation = "; ".join(reasons) if reasons else "Ocular highlights reflect environments symmetrically."
+        explanation = "; ".join(reasons) if reasons else "Ocular highlights reflect environments symmetrically with authentic facial micro-textures."
 
-        # 7. Generate Visual Output Artifacts for Display
+        # 8. Generate Visual Output Artifacts for Display
         face_path = f"{filename_base}_face.png"
         mesh_path = f"{filename_base}_mesh.png"
         l_crop_path = f"{filename_base}_l_crop.png"
@@ -248,6 +174,7 @@ class DeepfakePredictor:
             "rsi": rsi,
             "crcs": crcs,
             "ssim": ssim,
+            "texture_score": texture_score,
             "explanation": explanation,
             "face_confidence": face_confidence,
             "face_coords": face_coords,

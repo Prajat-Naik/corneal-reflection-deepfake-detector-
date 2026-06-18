@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
-import { Shield, Lock, User, CheckCircle } from 'lucide-react';
+import { Shield, Lock, User, Mail, CheckCircle } from 'lucide-react';
 
 const API_URL = 'http://127.0.0.1:5000/api';
 
 function Register() {
-  const [username, setUsername] = useState('');
+  const [fullName, setFullName] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
@@ -32,20 +33,25 @@ function Register() {
     setLoading(true);
 
     try {
-      const response = await axios.post(`${API_URL}/auth/register`, { username, password });
-      setSuccess(response.data.message || 'Registration successful! Node registered.');
+      const response = await axios.post(`${API_URL}/auth/register`, { 
+        fullName, 
+        email, 
+        password, 
+        confirmPassword 
+      });
+      setSuccess(response.data.message || 'Registration successful! Confirmation sent.');
       setTimeout(() => {
         navigate('/login');
       }, 2000);
     } catch (err) {
-      setError(err.response?.data?.message || 'Registration failed. Username may be taken.');
+      setError(err.response?.data?.message || 'Registration failed. Email may already be registered.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 relative overflow-hidden">
+    <div className="min-h-screen flex items-center justify-center px-4 relative overflow-hidden bg-slate-950">
       {/* Background glow effects */}
       <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-indigo-900/20 rounded-full blur-3xl -z-10 animate-pulse"></div>
       <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-teal-900/20 rounded-full blur-3xl -z-10 animate-pulse delay-700"></div>
@@ -55,8 +61,8 @@ function Register() {
           <div className="w-16 h-16 bg-indigo-500/10 border border-indigo-500/30 rounded-2xl flex items-center justify-center mb-4 text-indigo-400">
             <Shield className="w-8 h-8" />
           </div>
-          <h1 className="text-2xl font-bold tracking-tight text-white">Register Auditor Node</h1>
-          <p className="text-slate-400 text-sm mt-1">AuraEye Forensic Registry</p>
+          <h1 className="text-2xl font-bold tracking-tight text-white">Register Auditor Account</h1>
+          <p className="text-slate-400 text-sm mt-1">Deepfake Detection System</p>
         </div>
 
         {error && (
@@ -74,7 +80,7 @@ function Register() {
 
         <form onSubmit={handleRegister} className="space-y-4">
           <div className="space-y-1.5">
-            <label className="text-xs font-semibold uppercase tracking-wider text-slate-400">Username</label>
+            <label className="text-xs font-semibold uppercase tracking-wider text-slate-400">Full Name</label>
             <div className="relative">
               <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-500">
                 <User className="w-4 h-4" />
@@ -82,10 +88,27 @@ function Register() {
               <input
                 type="text"
                 required
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                placeholder="Pick a username"
-                className="w-full bg-slate-950/65 border border-slate-800 rounded-lg pl-10 pr-4 py-2 text-white placeholder-slate-650 focus:outline-none focus:border-indigo-500 transition-colors"
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                placeholder="Enter your full name"
+                className="w-full bg-slate-950/65 border border-slate-800 rounded-lg pl-10 pr-4 py-2 text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500 transition-colors"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold uppercase tracking-wider text-slate-400">Email Address</label>
+            <div className="relative">
+              <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-500">
+                <Mail className="w-4 h-4" />
+              </span>
+              <input
+                type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="auditor@example.com"
+                className="w-full bg-slate-950/65 border border-slate-800 rounded-lg pl-10 pr-4 py-2 text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500 transition-colors"
               />
             </div>
           </div>
@@ -102,7 +125,7 @@ function Register() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Choose a strong password"
-                className="w-full bg-slate-950/65 border border-slate-800 rounded-lg pl-10 pr-4 py-2 text-white placeholder-slate-650 focus:outline-none focus:border-indigo-500 transition-colors"
+                className="w-full bg-slate-950/65 border border-slate-800 rounded-lg pl-10 pr-4 py-2 text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500 transition-colors"
               />
             </div>
           </div>
@@ -119,7 +142,7 @@ function Register() {
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder="Repeat password"
-                className="w-full bg-slate-950/65 border border-slate-800 rounded-lg pl-10 pr-4 py-2 text-white placeholder-slate-650 focus:outline-none focus:border-indigo-500 transition-colors"
+                className="w-full bg-slate-950/65 border border-slate-800 rounded-lg pl-10 pr-4 py-2 text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500 transition-colors"
               />
             </div>
           </div>
@@ -130,7 +153,7 @@ function Register() {
             className="w-full text-white font-medium py-2 rounded-lg transition-colors flex items-center justify-center gap-2 mt-4"
             style={{ backgroundColor: '#6366f1' }}
           >
-            {loading ? 'Provisioning node...' : 'Create Auditor Node'}
+            {loading ? 'Creating account...' : 'Register Account'}
           </button>
         </form>
 

@@ -487,43 +487,57 @@ function Workspace() {
               {/* METRICS INDEX TAB */}
               {activeTab === 'metrics' && (
                 <div className="space-y-6">
-                  <h3 className="text-white font-extrabold text-xl">Ocular Forensic Indices</h3>
+                  <h3 className="text-white font-extrabold text-xl">Forensic Classification Indices</h3>
 
-                  <div className="space-y-6">
+                  <div className="space-y-4">
+                    {/* Final Result */}
+                    <div className="bg-slate-950/20 border border-slate-800 p-4 rounded-xl flex justify-between items-center text-sm font-semibold">
+                      <span className="text-slate-400">Final Verdict</span>
+                      <span className={`font-bold uppercase ${analysisResult.result === 'REAL' ? 'text-emerald-400' : 'text-red-400'}`}>
+                        {analysisResult.result}
+                      </span>
+                    </div>
+
+                    {/* Trust Score */}
+                    <div className="bg-slate-950/20 border border-slate-800 p-4 rounded-xl flex justify-between items-center text-sm font-semibold">
+                      <span className="text-slate-400">Trust Score</span>
+                      <span className="text-indigo-400 font-bold">{analysisResult.trust_score} / 100</span>
+                    </div>
+
+                    {/* Final Confidence */}
+                    <div className="bg-slate-950/20 border border-slate-800 p-4 rounded-xl flex justify-between items-center text-sm font-semibold">
+                      <span className="text-slate-400">Final Confidence</span>
+                      <span className="text-white font-bold">{analysisResult.confidence.toFixed(2)}%</span>
+                    </div>
+
+                    {/* Face Detection Confidence */}
+                    <div className="bg-slate-950/20 border border-slate-800 p-4 rounded-xl flex justify-between items-center text-sm font-semibold">
+                      <span className="text-slate-400">Face Detection Confidence</span>
+                      <span className="text-white font-bold">{(analysisResult.face_confidence * 100).toFixed(2)}%</span>
+                    </div>
+
+                    {/* Texture Authenticity Score */}
+                    <div className="bg-slate-950/20 border border-slate-800 p-4 rounded-xl flex justify-between items-center text-sm font-semibold">
+                      <span className="text-slate-400">Texture Authenticity Score</span>
+                      <span className="text-indigo-400 font-bold">{(analysisResult.texture_score || 0.0).toFixed(4)}</span>
+                    </div>
+
                     {/* RSI */}
-                    <div className="bg-slate-950/20 border border-slate-800 p-5 rounded-xl space-y-2">
-                      <div className="flex justify-between items-center text-sm font-semibold">
-                        <span className="text-white">Reflection Symmetry Index (RSI)</span>
-                        <span className="text-indigo-400">{analysisResult.rsi.toFixed(4)}</span>
-                      </div>
-                      <div className="w-full bg-slate-900 h-2.5 rounded-full overflow-hidden">
-                        <div className="bg-indigo-500 h-full" style={{ width: `${analysisResult.rsi * 100}%` }}></div>
-                      </div>
-                      <p className="text-xs text-slate-500">Interpretation range: Highly Symmetric (0.90 - 1.00) | Suspicious (Below 0.70)</p>
+                    <div className="bg-slate-950/20 border border-slate-800 p-4 rounded-xl flex justify-between items-center text-sm font-semibold">
+                      <span className="text-slate-400">Reflection Symmetry Index (RSI)</span>
+                      <span className="text-indigo-400 font-bold">{analysisResult.rsi.toFixed(4)}</span>
                     </div>
 
                     {/* CRCS */}
-                    <div className="bg-slate-950/20 border border-slate-800 p-5 rounded-xl space-y-2">
-                      <div className="flex justify-between items-center text-sm font-semibold">
-                        <span className="text-white">Corneal Reflection Consistency Score (CRCS)</span>
-                        <span className="text-indigo-400">{analysisResult.crcs.toFixed(2)} / 100</span>
-                      </div>
-                      <div className="w-full bg-slate-900 h-2.5 rounded-full overflow-hidden">
-                        <div className="bg-indigo-500 h-full" style={{ width: `${analysisResult.crcs}%` }}></div>
-                      </div>
-                      <p className="text-xs text-slate-500">Interpretation range: Real (80 - 100) | Suspicious (50 - 79) | Deepfake (Below 49)</p>
+                    <div className="bg-slate-950/20 border border-slate-800 p-4 rounded-xl flex justify-between items-center text-sm font-semibold">
+                      <span className="text-slate-400">Reflection Consistency Score (CRCS)</span>
+                      <span className="text-indigo-400 font-bold">{analysisResult.crcs.toFixed(2)} / 100</span>
                     </div>
 
                     {/* SSIM */}
-                    <div className="bg-slate-950/20 border border-slate-800 p-5 rounded-xl space-y-2">
-                      <div className="flex justify-between items-center text-sm font-semibold">
-                        <span className="text-white">Reflection Structural Similarity (SSIM)</span>
-                        <span className="text-indigo-400">{analysisResult.ssim.toFixed(4)}</span>
-                      </div>
-                      <div className="w-full bg-slate-900 h-2.5 rounded-full overflow-hidden">
-                        <div className="bg-indigo-500 h-full" style={{ width: `${analysisResult.ssim * 100}%` }}></div>
-                      </div>
-                      <p className="text-xs text-slate-500">Compares structure of cropped specular region (0.00 to 1.00)</p>
+                    <div className="bg-slate-950/20 border border-slate-800 p-4 rounded-xl flex justify-between items-center text-sm font-semibold">
+                      <span className="text-slate-400">Structural Similarity Score (SSIM)</span>
+                      <span className="text-indigo-400 font-bold">{analysisResult.ssim.toFixed(4)}</span>
                     </div>
                   </div>
                 </div>

@@ -19,7 +19,7 @@ class ForensicPDF(FPDF):
         
         self.set_font('helvetica', 'I', 10)
         self.set_text_color(129, 140, 248) # Indigo light
-        self.cell(0, 5, "Physics-Guided Eye specular reflection deepfake analysis report", border=0, ln=1, align='C')
+        self.cell(0, 5, "Physics-Guided Eye Specular Reflection Deepfake Analysis Report", border=0, ln=1, align='C')
         self.ln(10)
 
     def footer(self):
@@ -40,15 +40,15 @@ class ReportGenerator:
             self.reports_dir = reports_dir
         os.makedirs(self.reports_dir, exist_ok=True)
 
-    def generate_pdf_report(self, user_name, record_id, metrics):
+    def generate_pdf_report(self, user_name, user_email, record_id, metrics, image_path=None):
         """
-        Generates a professional forensic PDF report containing metadata and scores.
+        Generates a professional multi-page forensic PDF report containing metadata, images, and scores.
         """
         pdf = ForensicPDF()
-        pdf.add_page()
         pdf.set_auto_page_break(auto=True, margin=15)
         
-        # Add basic padding
+        # --- PAGE 1: AUDIT & VERDICT INFORMATION ---
+        pdf.add_page()
         pdf.set_left_margin(15)
         pdf.set_right_margin(15)
         pdf.set_text_color(17, 24, 39)
@@ -67,8 +67,11 @@ class ReportGenerator:
         pdf.cell(0, 6, f"AE-AUDIT-{record_id:06d}", 0, 1)
         
         pdf.set_font('helvetica', '', 10)
-        pdf.cell(col_w, 6, "Auditor Username:", 0, 0)
+        pdf.cell(col_w, 6, "Auditor Name:", 0, 0)
         pdf.cell(0, 6, str(user_name), 0, 1)
+        
+        pdf.cell(col_w, 6, "Auditor Email:", 0, 0)
+        pdf.cell(0, 6, str(user_email), 0, 1)
         
         pdf.cell(col_w, 6, "Analysis Date/Time:", 0, 0)
         pdf.cell(0, 6, datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"), 0, 1)
@@ -76,14 +79,13 @@ class ReportGenerator:
         pdf.cell(col_w, 6, "Audited Media Name:", 0, 0)
         pdf.cell(0, 6, metrics["media_name"], 0, 1)
         
-        pdf.ln(6)
+        pdf.ln(4)
 
         # 2. Final Prediction Verdict Block
         pdf.set_font('helvetica', 'B', 12)
         pdf.cell(0, 8, "FORENSIC CLASSIFICATION VERDICT", border="B", ln=1)
-        pdf.ln(4)
+        pdf.ln(3)
         
-        # Verdict highlights
         verdict = metrics["result"]
         conf = metrics["confidence"]
         trust = metrics["trust_score"]
@@ -108,7 +110,7 @@ class ReportGenerator:
         pdf.cell(col_w, 6, "Risk Assessment:", 0, 0)
         pdf.cell(0, 6, risk, 0, 1)
         
-        pdf.ln(6)
+        pdf.ln(4)
 
         # 3. MediaPipe Landmark Alignment Coordinates
         pdf.set_font('helvetica', 'B', 12)
@@ -124,9 +126,43 @@ class ReportGenerator:
         
         pdf.ln(6)
 
-        # 4. Detail Specular Reflection Metrics Table
+        # 4. Embedded Visualizations (Face Detection and Mesh)
+        # Find absolute paths of visuals
+        backend_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        results_dir = os.path.join(backend_dir, 'static', 'results')
+        
+        face_img_path = os.path.join(results_dir, os.path.basename(metrics["visuals"]["face_url"]))
+        mesh_img_path = os.path.join(results_dir, os.path.basename(metrics["visuals"]["mesh_url"]))
+        
+        # Display images side-by-side if they exist
+        pdf.set_font('helvetica', 'B', 11)
+        pdf.cell(90, 6, "Primary Face Detection Crop", 0, 0, 'C')
+        pdf.cell(90, 6, "Ocular Mesh Landmarks", 0, 1, 'C')
+        pdf.ln(2)
+        
+        y_pos = pdf.get_y()
+        if os.path.exists(face_img_path):
+            pdf.image(face_img_path, x=15, y=y_pos, w=85, h=85)
+        else:
+            pdf.rect(15, y_pos, 85, 85)
+            pdf.text(35, y_pos + 40, "[Face Detection Visual]")
+            
+        if os.path.exists(mesh_img_path):
+            pdf.image(mesh_img_path, x=110, y=y_pos, w=85, h=85)
+        else:
+            pdf.rect(110, y_pos, 85, 85)
+            pdf.text(130, y_pos + 40, "[Ocular Mesh Visual]")
+            
+        # Move pointer past the images
+        pdf.set_y(y_pos + 90)
+
+        # --- PAGE 2: OCULAR BIOMETRICS & PHYSICS ANALYSIS ---
+        pdf.add_page()
+        pdf.ln(5)
+
+        # 5. Detail Specular Reflection Metrics Table
         pdf.set_font('helvetica', 'B', 12)
-        pdf.cell(0, 8, "CORNEAL REFLECTION STATISTICS", border="B", ln=1)
+        pdf.cell(0, 8, "CORNEAL SPECULAR HIGHLIGHT EXTRACTION", border="B", ln=1)
         pdf.ln(4)
         
         # Headers
@@ -154,30 +190,53 @@ class ReportGenerator:
         
         pdf.ln(6)
 
-        # 5. Combined Physics Symmetry Metrics
+        # 6. Embedded Specular Comparison Binarization
+        comparison_img_path = os.path.join(results_dir, os.path.basename(metrics["visuals"]["comparison_url"]))
+        
+        pdf.set_font('helvetica', 'B', 11)
+        pdf.cell(0, 6, "Isolated Corneal Highlight Comparison (Left / Right Aligned)", 0, 1, 'C')
+        pdf.ln(2)
+        
+        y_pos_comp = pdf.get_y()
+        if os.path.exists(comparison_img_path):
+            # Maintain aspect ratio for side-by-side eyes comparison
+            pdf.image(comparison_img_path, x=45, y=y_pos_comp, w=120, h=40)
+            pdf.set_y(y_pos_comp + 45)
+        else:
+            pdf.rect(45, y_pos_comp, 120, 40)
+            pdf.text(80, y_pos_comp + 20, "[Corneal Highlight Overlay Visual]")
+            pdf.set_y(y_pos_comp + 45)
+
+        # 7. Combined Physics Symmetry Metrics
         pdf.set_font('helvetica', 'B', 12)
-        pdf.cell(0, 8, "OCULAR FORENSIC INDICES", border="B", ln=1)
+        pdf.cell(0, 8, "OCULAR FORENSIC INDICES & TEXTURE", border="B", ln=1)
         pdf.ln(2)
         
         pdf.set_font('helvetica', '', 10)
-        pdf.cell(65, 6, "Reflection Symmetry Index (RSI):", 0, 0)
+        # Texture Authenticity Score
+        pdf.cell(75, 6, "Texture Authenticity Score:", 0, 0)
+        pdf.set_font('helvetica', 'B', 10)
+        pdf.cell(30, 6, f"{metrics.get('texture_score', 0.0):.4f}", 0, 1)
+        pdf.set_font('helvetica', '', 10)
+        
+        pdf.cell(75, 6, "Reflection Symmetry Index (RSI):", 0, 0)
         pdf.cell(30, 6, f"{metrics['rsi']:.4f}", 0, 1)
         
-        pdf.cell(65, 6, "Reflection Consistency Score (CRCS):", 0, 0)
+        pdf.cell(75, 6, "Reflection Consistency Score (CRCS):", 0, 0)
         pdf.cell(30, 6, f"{metrics['crcs']:.2f} / 100", 0, 1)
         
-        pdf.cell(65, 6, "Structural Similarity (SSIM):", 0, 0)
+        pdf.cell(75, 6, "Structural Similarity (SSIM):", 0, 0)
         pdf.cell(30, 6, f"{metrics['ssim']:.4f}", 0, 1)
         
-        pdf.ln(6)
+        pdf.ln(4)
 
-        # 6. Explainable AI Reason Checklist Block
+        # 8. Explainable AI Reason Checklist Block
         pdf.set_font('helvetica', 'B', 12)
         pdf.cell(0, 8, "EXPLAINABLE AI (XAI) DIAGNOSTIC LOG", border="B", ln=1)
         pdf.ln(3)
         
         pdf.set_font('helvetica', '', 10)
-        reasons = metrics["reasons"]
+        reasons = metrics.get("reasons", [])
         
         if not reasons:
             pdf.set_text_color(16, 185, 129)

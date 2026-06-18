@@ -105,17 +105,27 @@ class DatabaseManager:
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS users (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                username TEXT UNIQUE NOT NULL,
+                full_name TEXT NOT NULL,
+                email TEXT UNIQUE NOT NULL,
                 password_hash TEXT NOT NULL,
-                role TEXT CHECK(role IN ('USER', 'ADMIN')) NOT NULL DEFAULT 'USER',
                 status TEXT CHECK(status IN ('ACTIVE', 'INACTIVE')) NOT NULL DEFAULT 'ACTIVE',
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         ''')
 
-        # 2. analyses
+        # 2. admins
         cursor.execute('''
-            CREATE TABLE IF NOT EXISTS analyses (
+            CREATE TABLE IF NOT EXISTS admins (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                username TEXT UNIQUE NOT NULL,
+                password_hash TEXT NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        ''')
+
+        # 3. Analysis_History
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS Analysis_History (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 user_id INTEGER,
                 media_name TEXT NOT NULL,
@@ -133,26 +143,40 @@ class DatabaseManager:
             )
         ''')
 
-        # 3. reports
+        # 4. reports
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS reports (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 analysis_id INTEGER,
                 report_path TEXT NOT NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY (analysis_id) REFERENCES analyses(id) ON DELETE CASCADE
+                FOREIGN KEY (analysis_id) REFERENCES Analysis_History(id) ON DELETE CASCADE
             )
         ''')
 
-        # 4. activity_logs
+        # 5. activity_logs
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS activity_logs (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 user_id INTEGER,
                 action TEXT NOT NULL,
                 details TEXT,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        ''')
+
+        # 6. Email_Notifications
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS Email_Notifications (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER,
+                analysis_id INTEGER,
+                email TEXT NOT NULL,
+                delivery_status TEXT CHECK(delivery_status IN ('SENT', 'FAILED')) NOT NULL,
+                error_message TEXT,
+                timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+                FOREIGN KEY (analysis_id) REFERENCES Analysis_History(id) ON DELETE CASCADE
             )
         ''')
         
@@ -174,17 +198,27 @@ class DatabaseManager:
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS users (
                 id INT AUTO_INCREMENT PRIMARY KEY,
-                username VARCHAR(50) UNIQUE NOT NULL,
+                full_name VARCHAR(100) NOT NULL,
+                email VARCHAR(100) UNIQUE NOT NULL,
                 password_hash VARCHAR(255) NOT NULL,
-                role ENUM('USER', 'ADMIN') NOT NULL DEFAULT 'USER',
                 status ENUM('ACTIVE', 'INACTIVE') NOT NULL DEFAULT 'ACTIVE',
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             ) ENGINE=InnoDB
         ''')
 
-        # 2. analyses
+        # 2. admins
         cursor.execute('''
-            CREATE TABLE IF NOT EXISTS analyses (
+            CREATE TABLE IF NOT EXISTS admins (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                username VARCHAR(50) UNIQUE NOT NULL,
+                password_hash VARCHAR(255) NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            ) ENGINE=InnoDB
+        ''')
+
+        # 3. Analysis_History
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS Analysis_History (
                 id INT AUTO_INCREMENT PRIMARY KEY,
                 user_id INT,
                 media_name VARCHAR(255) NOT NULL,
@@ -202,26 +236,40 @@ class DatabaseManager:
             ) ENGINE=InnoDB
         ''')
 
-        # 3. reports
+        # 4. reports
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS reports (
                 id INT AUTO_INCREMENT PRIMARY KEY,
                 analysis_id INT,
                 report_path VARCHAR(512) NOT NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY (analysis_id) REFERENCES analyses(id) ON DELETE CASCADE
+                FOREIGN KEY (analysis_id) REFERENCES Analysis_History(id) ON DELETE CASCADE
             ) ENGINE=InnoDB
         ''')
 
-        # 4. activity_logs
+        # 5. activity_logs
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS activity_logs (
                 id INT AUTO_INCREMENT PRIMARY KEY,
                 user_id INT,
                 action VARCHAR(100) NOT NULL,
                 details TEXT,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            ) ENGINE=InnoDB
+        ''')
+
+        # 6. Email_Notifications
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS Email_Notifications (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                user_id INT,
+                analysis_id INT,
+                email VARCHAR(100) NOT NULL,
+                delivery_status ENUM('SENT', 'FAILED') NOT NULL,
+                error_message TEXT,
+                timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+                FOREIGN KEY (analysis_id) REFERENCES Analysis_History(id) ON DELETE CASCADE
             ) ENGINE=InnoDB
         ''')
 
@@ -230,25 +278,41 @@ class DatabaseManager:
         conn.close()
 
     def _seed_default_users(self, cursor, conn):
-        """Seeds default Admin and User credentials if user count is zero."""
-        cursor.execute("SELECT COUNT(*) FROM users")
-        count = cursor.fetchone()[0]
-        
-        if count == 0:
-            admin_hash = generate_password_hash('adminpassword')
-            user_hash = generate_password_hash('userpassword')
+        """Seeds default Admin and User credentials if counts are zero."""
+        # Seed Admin
+        try:
+            cursor.execute("SELECT COUNT(*) FROM admins")
+            admin_count = cursor.fetchone()[0]
+        except Exception:
+            admin_count = 0
             
+        if admin_count == 0:
+            admin_hash = generate_password_hash('adminpassword')
             if self.engine == 'sqlite':
-                cursor.execute("INSERT INTO users (username, password_hash, role, status) VALUES (?, ?, ?, ?)", 
-                               ('admin', admin_hash, 'ADMIN', 'ACTIVE'))
-                cursor.execute("INSERT INTO users (username, password_hash, role, status) VALUES (?, ?, ?, ?)", 
-                               ('user', user_hash, 'USER', 'ACTIVE'))
+                cursor.execute("INSERT INTO admins (username, password_hash) VALUES (?, ?)", 
+                               ('admin', admin_hash))
             else:
-                cursor.execute("INSERT INTO users (username, password_hash, role, status) VALUES (%s, %s, %s, %s)", 
-                               ('admin', admin_hash, 'ADMIN', 'ACTIVE'))
-                cursor.execute("INSERT INTO users (username, password_hash, role, status) VALUES (%s, %s, %s, %s)", 
-                               ('user', user_hash, 'USER', 'ACTIVE'))
+                cursor.execute("INSERT INTO admins (username, password_hash) VALUES (%s, %s)", 
+                               ('admin', admin_hash))
             conn.commit()
-            print("[Database Manager] Seeded Default Accounts. admin/adminpassword and user/userpassword")
+            print("[Database Manager] Seeded Default Admin Account. admin/adminpassword")
+            
+        # Seed User
+        try:
+            cursor.execute("SELECT COUNT(*) FROM users")
+            user_count = cursor.fetchone()[0]
+        except Exception:
+            user_count = 0
+            
+        if user_count == 0:
+            user_hash = generate_password_hash('userpassword')
+            if self.engine == 'sqlite':
+                cursor.execute("INSERT INTO users (full_name, email, password_hash, status) VALUES (?, ?, ?, ?)", 
+                               ('Default User', 'user@example.com', user_hash, 'ACTIVE'))
+            else:
+                cursor.execute("INSERT INTO users (full_name, email, password_hash, status) VALUES (%s, %s, %s, %s)", 
+                               ('Default User', 'user@example.com', user_hash, 'ACTIVE'))
+            conn.commit()
+            print("[Database Manager] Seeded Default User Account. user@example.com/userpassword")
 
 db = DatabaseManager()

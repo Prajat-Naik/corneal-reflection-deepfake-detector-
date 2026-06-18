@@ -14,3 +14,4 @@ fpdf2
 PyJWT
 mysql-connector-python
 werkzeug
+python-dotenv
