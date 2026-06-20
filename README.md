@@ -17,6 +17,52 @@ Generative adversarial networks (GANs) generate facial details with extreme high
 
 ---
 
+## 📸 Project Showcase & User Interface
+
+Here is a visual walkthrough of the AuraEye Forensics system, showcasing the user interface, administrative dashboards, forensic analysis results, and the core AI detection pipeline.
+
+### 🔐 Authentication & Access Control
+| User Login | Admin Login |
+| :---: | :---: |
+| ![User Login](Project%20screenshots/User%20login.png) | ![Admin Login](Project%20screenshots/Admin%20login.png) |
+
+### 📊 Dashboards & System Metrics
+| User Dashboard | Admin Dashboard |
+| :---: | :---: |
+| ![User Dashboard](Project%20screenshots/user%20dashboard.png) | ![Admin Dashboard](Project%20screenshots/Admin%20dashboard.png) |
+
+| System Performance Statistics | System Activity Monitor |
+| :---: | :---: |
+| ![System Performance](Project%20screenshots/System%20performance%20statistics.png) | ![System Activity Monitor](Project%20screenshots/System%20activity%20montior.png) |
+
+### 🔍 Forensic Analysis & AI Pipeline
+| 1. Upload & Analyze Image | 2. Face Localization |
+| :---: | :---: |
+| ![Browse and Analyze](Project%20screenshots/Browse%20and%20%20analyze%20image.png) | ![Face Localization](Project%20screenshots/Face%20localization.png) |
+
+| 3. Eye Localization | 4. Specular Overlap Verification |
+| :---: | :---: |
+| ![Eye Localization](Project%20screenshots/Eye%20localization.png) | ![Symmetry Overlap Verification](Project%20screenshots/Symmetry%20%20Overlap%20Verification.png) |
+
+| 5. Final Analysis Verdict | Auditor Node Directory |
+| :---: | :---: |
+| ![Result after analyzing](Project%20screenshots/Result%20after%20analyzing.png) | ![Auditor Node Directory](Project%20screenshots/Auditor%20node%20directory%20where%20admin%20can%20handle%20everything.png) |
+
+| Audit History Logs |
+| :---: |
+| ![Audit History](Project%20screenshots/Audit%20history.png) |
+
+### 🔬 Core AI Concept (Real vs. Deepfake Reflections)
+| Real Image Example | Deepfake Image Example |
+| :---: | :---: |
+| ![Real Image](Project%20screenshots/Real%20image.png) | ![Deepfake Image](Project%20screenshots/Deepfake%20image.png) |
+
+| Set of Real Images | Set of Deepfake Images |
+| :---: | :---: |
+| ![Set of Real Images](Project%20screenshots/Set%20of%20real%20images.png) | ![Set of Deepfake Images](Project%20screenshots/Set%20of%20deepfake%20images.png) |
+
+---
+
 ## 🏗️ Technical Architecture & Data Flow
 
 ```mermaid
